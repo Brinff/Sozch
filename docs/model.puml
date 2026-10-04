@@ -1,0 +1,93 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface XmlSerializable {
+  +saveXml(QXmlStreamWriter&) const
+  +loadXml(QXmlStreamReader&)
+}
+
+abstract class Entity {
+  -id : int
+  +id() : int
+}
+
+abstract class NamedEntity {
+  -name : QString
+  +name() : QString
+}
+
+class Dimensions <<value object>> {
+  -length : double
+  -width : double
+  -height : double
+}
+
+class SparePartType {
+  -mass : double
+  -price : double
+  -dimensions : Dimensions
+}
+
+class PartGroup {
+  +addPart(SparePartType)
+  +removePart(partId)
+}
+
+class PartCatalog {
+  +addGroup(PartGroup)
+  +removeGroup(groupId)
+  +findPart(partId) : SparePartType*
+  +groupOfPart(partId) : PartGroup*
+}
+
+class StockItem <<value object>> {
+  -partId : int
+  -quantity : int
+  -price : double
+  -deliveryDate : QDate
+}
+
+class Warehouse {
+  +setStock(StockItem)
+  +removeStock(partId)
+  +stockOf(partId) : StockItem*
+}
+
+class Product {
+  -composition : QMap<partId, quantity>
+  +setPart(partId, quantity)
+  +removePart(partId)
+}
+
+class SupplySystem {
+  +partsOfProduct(productId)
+  +stockLocations(partId)
+  +validate() : QStringList
+  +loadFromFile(path)
+  +saveToFile(path)
+}
+
+XmlSerializable <|.. Entity
+Entity <|-- NamedEntity
+NamedEntity <|-- PartGroup
+NamedEntity <|-- SparePartType
+NamedEntity <|-- Warehouse
+NamedEntity <|-- Product
+Entity <|-- SupplySystem
+
+XmlSerializable <|.. Dimensions
+XmlSerializable <|.. StockItem
+XmlSerializable <|.. PartCatalog
+
+SupplySystem *-- PartCatalog
+SupplySystem *-- "0..*" Warehouse
+SupplySystem *-- "0..*" Product
+PartCatalog *-- "0..*" PartGroup
+PartGroup *-- "0..*" SparePartType
+SparePartType *-- Dimensions
+Warehouse *-- "0..*" StockItem
+
+StockItem ..> SparePartType : partId
+Product ..> SparePartType : partId
+@enduml
